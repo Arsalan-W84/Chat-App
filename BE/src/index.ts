@@ -22,5 +22,6 @@ wss.on('connection' , (Socket) => {
     Socket.on('disconnect' , ()=>{
         Allsockets = Allsockets.filter(x => x!=Socket);
     });
+    
     Socket.send("HI there");
 })
