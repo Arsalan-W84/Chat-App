@@ -4,46 +4,26 @@ import './App.css'
 
 function App() {
   //chat messages ref
-  const [list, setList] = useState<string[]>([]);
-  const Socketref = useRef(null);
-  useEffect(()=>{
-    const Socket = new WebSocket("ws://localhost:8080"); 
-    //@ts-ignore 
-    Socketref.current = Socket;
 
-    Socket.onopen = () => {};
-    Socket.onmessage = (event) => {
-        //const data = JSON.parse(event.data);
-        const data = event.data;
-        setList(prev => [...prev , data]);
-    };
-    Socket.onerror = () => {};
-    Socket.onclose = () => {};
-
-    
-  } ,[]);
-
+  //ref to take inputbox string
   const InputBoxRef = useRef(null);
 
-  function sendMessage() {
-      //@ts-ignore
-      Socketref.current.send(InputBoxRef.current.value);
+  function onClickHandler() {//after send button is clicked
+      
   }
   return (
     <div className='w-screen h-screen bg-[#012938] flex justify-center items-center'>
-        <div className='p-4 w-110 h-110 bg-[#013748] border-xl rounded-2xl'>
+        <div className='p-4 w-110 h-110 bg-[#013748] border-xl rounded-2xl flex flex-col'>
             <div className='p-2 h-[90%] bg-red-400'>
-                  {list.map((item, index) => (
-                    <div key={index}>{item}</div>
-                  ))}
+              
             </div>
 
-            <div className='p-2 mt-1 flex items-center bg-blue-300'>
-                <div className=''>
-                  <input ref={InputBoxRef} placeholder='message...'></input>
+            <div className='mt-2 flex justify-between'>
+                <div className='m-1 w-[80%] bg-blue-500 rounded-3xl'>
+                  <input ref={InputBoxRef} placeholder='message...' className='p-3 w-full outline-none text-white'></input>
                 </div>
-                <div>
-                  <button onClick={sendMessage} className='bg-blue-700'>Send</button>
+                <div className='m-1'>
+                  <button onClick={onClickHandler} className='p-3 bg-blue-500 hover:bg-blue-600 rounded-3xl'>Send</button>
                 </div>
             </div>
         </div>
