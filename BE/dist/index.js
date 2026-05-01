@@ -15,7 +15,7 @@ wss.on('connection', (Socket) => {
         const data = JSON.parse(message);
         if (data.type === 'join') { //user wants to join the server
             console.log("Join Request Sent");
-            //make an entry into the Allsockets map
+            //make an entry into the RoomSockets map
             let sockets = Roomsockets.get(data.payload.roomId);
             if (!sockets) {
                 sockets = new Set();
@@ -37,16 +37,15 @@ wss.on('connection', (Socket) => {
             // Socket.send(JSON.stringify(messages));
         }
         else if (data.type === 'message') { // user sent a message in a room
-            //enter the message into the DataBase
-            // await MessageModel.create({
-            //     sender : data.payload.sender,
-            //     roomId : data.payload.roomId,
-            //     content : data.payload.content,
-            //     sentAt  : data.payload.sentAt 
-            // });
+            //????????ENTER MESSAGE INTO THE DATABASE ??????
             const message = JSON.stringify(data.payload);
             console.log(message);
+            //?????????????HOW WILL YOU VERIFY DATA , WHICH USER SENDS ???
             //iterate over Allsockets to send the messages using their sockets 
+            //  Roomsockets : {
+            //       room1: {user1,user2,user3....},
+            //       room2: {user2,user4,user5,.......}
+            //  }
             let sockets = Roomsockets.get(data.payload.roomId);
             console.log(sockets);
             sockets?.forEach(s => s.send(message));
