@@ -1,9 +1,12 @@
+import dotenv from 'dotenv';
+dotenv.config();
+const MONGO_URL = process.env.MONGO_URL;
 import { WebSocketServer, WebSocket } from 'ws';
 import { MembershipModel, MessageModel, UserModel } from './db.js';
 import mongoose from 'mongoose';
 const wss = new WebSocketServer({ port: 8080 });
 let Roomsockets = new Map();
-await mongoose.connect("mongodb+srv://arsalanwahid0804_db_user:C5S9Z6oTDJ2r3y5H@cluster0.mckhh0n.mongodb.net/ChatApp");
+await mongoose.connect(MONGO_URL);
 console.log("DB connected");
 wss.on('connection', (Socket) => {
     console.log("Socket connected");

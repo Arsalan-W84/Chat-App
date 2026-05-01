@@ -1,3 +1,6 @@
+import dotenv from 'dotenv';
+dotenv.config();
+const MONGO_URL = process.env.MONGO_URL as string;
 import {WebSocketServer , WebSocket} from 'ws'
 import { MembershipModel, MessageModel, UserModel } from './db.js';
 import mongoose from 'mongoose';
@@ -6,8 +9,7 @@ const wss = new  WebSocketServer({port : 8080});
 
 let Roomsockets  = new Map< string , Set<WebSocket>> () ; 
 
-
-await mongoose.connect("mongodb+srv://arsalanwahid0804_db_user:C5S9Z6oTDJ2r3y5H@cluster0.mckhh0n.mongodb.net/ChatApp");
+await mongoose.connect(MONGO_URL);
 console.log("DB connected");
 wss.on('connection' , (Socket) => {
     console.log("Socket connected");
@@ -21,7 +23,8 @@ wss.on('connection' , (Socket) => {
        if(data.type === 'join') { //user wants to join the server
             
             console.log("Join Request Sent");
-            //make an entry into the Allsockets map
+            //make an entry into the RoomSockets map
+            
             let sockets = Roomsockets.get( data.payload.roomId );
             if(!sockets){
                 sockets = new Set<WebSocket>();
@@ -48,19 +51,20 @@ wss.on('connection' , (Socket) => {
 
        } else if(data.type === 'message'){ // user sent a message in a room
 
-            //enter the message into the DataBase
-            // await MessageModel.create({
-            //     sender : data.payload.sender,
-            //     roomId : data.payload.roomId,
-            //     content : data.payload.content,
-            //     sentAt  : data.payload.sentAt 
-            // });
-            
+            //????????ENTER MESSAGE INTO THE DATABASE ??????
+
             const message = JSON.stringify(data.payload);
             console.log(message);
+
+            //?????????????HOW WILL YOU VERIFY DATA , WHICH USER SENDS ???
+
+
             //iterate over Allsockets to send the messages using their sockets 
+            //  Roomsockets : {
+            //       room1: {user1,user2,user3....},
+            //       room2: {user2,user4,user5,.......}
+            //  }
             let sockets = Roomsockets.get(data.payload.roomId);
-            console.log(sockets);
             sockets?.forEach(s=> s.send(message));
        }
 
