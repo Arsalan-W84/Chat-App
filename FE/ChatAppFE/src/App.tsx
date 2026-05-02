@@ -29,6 +29,11 @@ function App() {
     ws.onmessage = (event) => {
       SetMessages((prev) => [...prev , event.data]);        
     }
+
+    //cleanup
+    return () => {
+      ws.close();
+    }
   } , []);
     
   function onClickHandler() {//after send button is clicked
@@ -40,8 +45,14 @@ function App() {
           content: InputBoxRef.current?.value 
         }
       }
+      
+      //clear the input field
       const stringdata = JSON.stringify(jsondata);
       Socketref.current?.send(stringdata);
+      if(InputBoxRef.current){
+          InputBoxRef.current.value = '';
+      }
+     
   }
   
   //how to always scroll to bottom ? Use a invisible div make control always point there
