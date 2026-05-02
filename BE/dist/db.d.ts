@@ -113,21 +113,21 @@ export declare const MembershipModel: mongoose.Model<{
     role: "admin" | "member";
     joinedAt: NativeDate;
     userId?: mongoose.Types.ObjectId | null;
-    roomId?: mongoose.Types.ObjectId | null;
+    roomId?: string | null;
 }, {}, {}, {
     id: string;
 }, mongoose.Document<unknown, {}, {
     role: "admin" | "member";
     joinedAt: NativeDate;
     userId?: mongoose.Types.ObjectId | null;
-    roomId?: mongoose.Types.ObjectId | null;
+    roomId?: string | null;
 }, {
     id: string;
 }, mongoose.DefaultSchemaOptions> & Omit<{
     role: "admin" | "member";
     joinedAt: NativeDate;
     userId?: mongoose.Types.ObjectId | null;
-    roomId?: mongoose.Types.ObjectId | null;
+    roomId?: string | null;
 } & {
     _id: mongoose.Types.ObjectId;
 } & {
@@ -138,19 +138,19 @@ export declare const MembershipModel: mongoose.Model<{
     role: "admin" | "member";
     joinedAt: NativeDate;
     userId?: mongoose.Types.ObjectId | null;
-    roomId?: mongoose.Types.ObjectId | null;
+    roomId?: string | null;
 }, mongoose.Document<unknown, {}, {
     role: "admin" | "member";
     joinedAt: NativeDate;
     userId?: mongoose.Types.ObjectId | null;
-    roomId?: mongoose.Types.ObjectId | null;
+    roomId?: string | null;
 }, {
     id: string;
 }, mongoose.DefaultSchemaOptions> & Omit<{
     role: "admin" | "member";
     joinedAt: NativeDate;
     userId?: mongoose.Types.ObjectId | null;
-    roomId?: mongoose.Types.ObjectId | null;
+    roomId?: string | null;
 } & {
     _id: mongoose.Types.ObjectId;
 } & {
@@ -161,7 +161,7 @@ export declare const MembershipModel: mongoose.Model<{
     role: "admin" | "member";
     joinedAt: NativeDate;
     userId?: mongoose.Types.ObjectId | null;
-    roomId?: mongoose.Types.ObjectId | null;
+    roomId?: string | null;
 } & {
     _id: mongoose.Types.ObjectId;
 } & {
@@ -170,7 +170,7 @@ export declare const MembershipModel: mongoose.Model<{
     role: "admin" | "member";
     joinedAt: NativeDate;
     userId?: mongoose.Types.ObjectId | null;
-    roomId?: mongoose.Types.ObjectId | null;
+    roomId?: string | null;
 } & {
     _id: mongoose.Types.ObjectId;
 } & {
@@ -179,21 +179,21 @@ export declare const MembershipModel: mongoose.Model<{
 export declare const MessageModel: mongoose.Model<{
     sender: string;
     sentAt: NativeDate;
-    roomId?: mongoose.Types.ObjectId | null;
+    roomId?: string | null;
     content?: string | null;
 }, {}, {}, {
     id: string;
 }, mongoose.Document<unknown, {}, {
     sender: string;
     sentAt: NativeDate;
-    roomId?: mongoose.Types.ObjectId | null;
+    roomId?: string | null;
     content?: string | null;
 }, {
     id: string;
 }, mongoose.DefaultSchemaOptions> & Omit<{
     sender: string;
     sentAt: NativeDate;
-    roomId?: mongoose.Types.ObjectId | null;
+    roomId?: string | null;
     content?: string | null;
 } & {
     _id: mongoose.Types.ObjectId;
@@ -204,19 +204,19 @@ export declare const MessageModel: mongoose.Model<{
 }, mongoose.Schema<any, mongoose.Model<any, any, any, any, any, any, any>, {}, {}, {}, {}, mongoose.DefaultSchemaOptions, {
     sender: string;
     sentAt: NativeDate;
-    roomId?: mongoose.Types.ObjectId | null;
+    roomId?: string | null;
     content?: string | null;
 }, mongoose.Document<unknown, {}, {
     sender: string;
     sentAt: NativeDate;
-    roomId?: mongoose.Types.ObjectId | null;
+    roomId?: string | null;
     content?: string | null;
 }, {
     id: string;
 }, mongoose.DefaultSchemaOptions> & Omit<{
     sender: string;
     sentAt: NativeDate;
-    roomId?: mongoose.Types.ObjectId | null;
+    roomId?: string | null;
     content?: string | null;
 } & {
     _id: mongoose.Types.ObjectId;
@@ -227,7 +227,7 @@ export declare const MessageModel: mongoose.Model<{
 }, unknown, {
     sender: string;
     sentAt: NativeDate;
-    roomId?: mongoose.Types.ObjectId | null;
+    roomId?: string | null;
     content?: string | null;
 } & {
     _id: mongoose.Types.ObjectId;
@@ -236,7 +236,7 @@ export declare const MessageModel: mongoose.Model<{
 }>, {
     sender: string;
     sentAt: NativeDate;
-    roomId?: mongoose.Types.ObjectId | null;
+    roomId?: string | null;
     content?: string | null;
 } & {
     _id: mongoose.Types.ObjectId;

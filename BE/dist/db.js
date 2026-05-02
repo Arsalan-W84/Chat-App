@@ -11,7 +11,7 @@ const RoomSchema = new Schema({
 });
 const MembershipSchema = new mongoose.Schema({
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'users' },
-    roomId: { type: mongoose.Schema.Types.ObjectId, ref: 'room' },
+    roomId: { type: String },
     role: {
         type: String,
         enum: ["admin", "member"],
@@ -22,7 +22,7 @@ const MembershipSchema = new mongoose.Schema({
 MembershipSchema.index({ userId: 1, roomId: 1 }, { unique: true });
 const MessageSchema = new Schema({
     sender: { type: String, required: true },
-    roomId: { type: mongoose.Schema.Types.ObjectId, ref: 'room' },
+    roomId: { type: String },
     content: { type: String },
     sentAt: { type: Date, default: Date.now() }
 });
