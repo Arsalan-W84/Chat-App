@@ -74,6 +74,7 @@ app.post("/signin" , async(req , res) => {
     }
     
 });
+
 //---------------------------------------------
 await mongoose.connect(MONGO_URL);
 console.log("DB connected");
@@ -97,6 +98,7 @@ wss.on('connection' , (Socket , req) => {
     console.log("Socket connected");
 
     Socket.on('error' , console.error);
+
     Socket.on('message' , async (message : string) => { //message sent to server 
         let data;
         try {
@@ -246,6 +248,13 @@ wss.on('connection' , (Socket , req) => {
             console.log(message);
             
             sockets?.forEach(s=> s.send(message));
+        }else if(data.type === 'rooms') {
+           
+            const userRooms = await MembershipModel.find({
+                userId : (Socket as any).userId
+            });
+            const response = JSON.stringify(userRooms);
+            Socket.send(response);
         }
 
     });

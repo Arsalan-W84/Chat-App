@@ -156,7 +156,6 @@ wss.on('connection', (Socket, req) => {
             }
         }
         else if (data.type === 'leave') { // user wants to leave a room
-            console.log("1");
             try {
                 //find the room which user wants to leave
                 let sockets = Roomsockets.get(data.payload.roomId);
@@ -164,34 +163,32 @@ wss.on('connection', (Socket, req) => {
                 if (!sockets) {
                     Socket.send("Room : " + data.payload.roomId + "doesn't exist");
                 }
-                const deleted = sockets?.delete(Socket);
-                console.log("3");
-                if (deleted) {
-                    if (sockets?.size == 0) { //no other member in this room
-                        Roomsockets.delete(data.payload.roomId);
-                        console.log("Deleted room : " + data.payload.roomId);
+                else {
+                    const deleted = sockets?.delete(Socket);
+                    if (deleted) {
+                        if (sockets?.size == 0) { //no other member in this room
+                            Roomsockets.delete(data.payload.roomId);
+                            console.log("Deleted room : " + data.payload.roomId);
+                        }
+                        else {
+                            //@ts-ignore
+                            Roomsockets.set(data.payload.roomId, sockets);
+                        }
+                        //delete the entry from the relationship 
+                        await MembershipModel.findOneAndDelete({
+                            userId: Socket.userId,
+                            roomId: data.payload.roomId
+                        });
+                        //for loggin the name and roomId  
+                        const user = await UserModel.findOne({
+                            _id: Socket.userId
+                        });
+                        Socket.send("User: " + user + " , left the Room: " + data.payload.roomId);
+                        console.log("User: " + user?.username + " left the room : " + data.payload.roomId);
                     }
-                    else {
-                        //@ts-ignore
-                        Roomsockets.set(data.payload.roomId, sockets);
+                    else { //Socket is not part of this room
+                        Socket.send("Could not delete user from room : " + data.payload.roomId);
                     }
-                    console.log("4");
-                    //delete the entry from the relationship 
-                    await MembershipModel.findOneAndDelete({
-                        userId: Socket.userId,
-                        roomId: data.payload.roomId
-                    });
-                    console.log("5");
-                    //for loggin the name and roomId  
-                    const user = await UserModel.findOne({
-                        _id: Socket.userId
-                    });
-                    console.log("6");
-                    Socket.send("User: " + user + " , left the Room: " + data.payload.roomId);
-                    console.log("User: " + user?.username + " left the room : " + data.payload.roomId);
-                }
-                else { //Socket is not part of this room
-                    Socket.send("Could not delete user from room : " + data.payload.roomId);
                 }
             }
             catch (e) {
@@ -221,6 +218,13 @@ wss.on('connection', (Socket, req) => {
             });
             console.log(message);
             sockets?.forEach(s => s.send(message));
+        }
+        else if (data.type === 'rooms') {
+            const userRooms = await MembershipModel.find({
+                userId: Socket.userId
+            });
+            const response = JSON.stringify(userRooms);
+            Socket.send(response);
         }
     });
     Socket.on("close", () => {
