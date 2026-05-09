@@ -107,31 +107,39 @@ wss.on('connection' , (Socket , req) => {
 
        if(data.type === 'join') { //user wants to join the server
             try{
-                //make an entry into the RoomSockets map
+                //get all sockets of this roomId from RoomSockets map
                 let sockets = Roomsockets.get( data.payload.roomId );
-                //if this roomId is not present , it creates it for me
-                if(!sockets){
-                    sockets = new Set<WebSocket>();
-                    Roomsockets.set(data.payload.roomId, sockets);   
-                }
-                sockets?.add(Socket);
 
-                //make an entry when a user joins a group
-                await MembershipModel.findOneAndUpdate(
-                    {
-                    userId : (Socket as any).userId,
-                    roomId : data.payload.roomId,
-                    } , 
-                    {
-                        $setOnInsert : {
-                            role : "member",
-                            joinedAt : Date.now()
-                        }
-                    },
-                    {
-                        upsert : true
-                });
-                console.log("User now part of room : " + data.payload.roomId);
+                //if this roomId is not present , socket will be empty
+                if(!sockets){
+                    Socket.send("This room does not exist!!");   
+                }
+                //if the socket is already present in the set 
+                else if(sockets?.has(Socket)){
+                    Socket.send("User is already part of this room");
+                }
+                else{//room is present and user was not previously present
+                    sockets?.add(Socket);
+                    //make an entry when a user joins a group
+                    await MembershipModel.findOneAndUpdate(
+                        {
+                        userId : (Socket as any).userId,
+                        roomId : data.payload.roomId,
+                        } , 
+                        {
+                            $setOnInsert : {
+                                role : "member",
+                                joinedAt : Date.now()
+                            }
+                        },
+                        {
+                            upsert : true
+                    });
+                    Socket.send("Joined Room : " + data.payload.roomId);
+                    console.log("User now part of room : " + data.payload.roomId);
+                }
+                
+                
             }
             catch(e){
                 console.log(e);
@@ -163,41 +171,66 @@ wss.on('connection' , (Socket , req) => {
                 const user = await UserModel.findOne({
                     _id : (Socket as any).userId
                 });
+                Socket.send("Room Id : " + uid);
                 console.log("Room :" + uid + " created by user : " + user?.username);
             }catch(e){
                 console.log("errror :  " + e);
             }
             
         } else if(data.type === 'leave') { // user wants to leave a room
-                
+        
                 try{
                     //find the room which user wants to leave
                     let sockets = Roomsockets.get(data.payload.roomId);
-                    const deleted = sockets?.delete(Socket);
-                    if(deleted){
-                        if(sockets?.size == 0){
-                            Roomsockets.delete(data.payload.roomId);
-                        }else{
-                            //@ts-ignore
-                            Roomsockets.set(data.payload.roomId , sockets);
+                    console.log("2");
+                    if(!sockets){
+                        Socket.send("Room : " + data.payload.roomId +"doesn't exist");
+                        
+                    }else{
+
+                        const deleted = sockets?.delete(Socket);
+                        if(deleted){
+                            if(sockets?.size == 0){ //no other member in this room
+                                Roomsockets.delete(data.payload.roomId);
+                                console.log("Deleted room : " + data.payload.roomId);
+                            }else{
+                                //@ts-ignore
+                                Roomsockets.set(data.payload.roomId , sockets);
+                            }
+                            
+                            //delete the entry from the relationship 
+                            await MembershipModel.findOneAndDelete({
+                                userId : (Socket as any).userId , 
+                                roomId : data.payload.roomId
+                            });
+                            
+                            //for loggin the name and roomId  
+                            const user = await UserModel.findOne({
+                                _id : (Socket as any).userId
+                            });
+                            
+                            Socket.send("User: " + user + " , left the Room: " + data.payload.roomId);
+                            console.log("User: " + user?.username  + " left the room : " + data.payload.roomId);
+                        
+                        }else { //Socket is not part of this room
+                            Socket.send("Could not delete user from room : " + data.payload.roomId)
                         }
-                
-                        //delete the entry from the relationship 
-                        await MembershipModel.findOneAndDelete({
-                            userId : (Socket as any).userId , 
-                            roomId : data.payload.roomId
-                        });
-                        //for loggin the name and roomId  
-                        const user = await UserModel.findOne({
-                            _id : (Socket as any).userId
-                        });
-                        console.log("User: " + user?.username  + " left the room : " + data.payload.roomId);
                     }
+                    
                 }catch(e){
                     console.log(e);
                 }
-        } else if(data.type === 'message'){ // user sent a message in a room
+        } else if(data.type === 'message') { // user sent a message in a room
 
+            //first check if user is part of this room or not
+            const sockets = Roomsockets.get(data.payload.roomId);
+            if(!sockets){
+                Socket.send("Room does not exist!");
+            }
+            const userfoundinroom = sockets?.has(Socket);
+            if(userfoundinroom === false){
+                Socket.send("User not a part of this room .")
+            }
             //enter message into the Database
             const saved = await MessageModel.create({
                 sender: (Socket as any).userId,
@@ -211,9 +244,9 @@ wss.on('connection' , (Socket , req) => {
                 payload : saved
             });
             console.log(message);
-            const sockets = Roomsockets.get(data.payload.roomId);
+            
             sockets?.forEach(s=> s.send(message));
-       }
+        }
 
     });
 
