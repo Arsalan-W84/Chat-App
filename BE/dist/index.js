@@ -1,5 +1,6 @@
 import dotenv from 'dotenv';
 dotenv.config();
+import cors from 'cors';
 const MONGO_URL = process.env.MONGO_URL;
 import { WebSocketServer, WebSocket } from 'ws';
 import express from 'express';
@@ -9,6 +10,7 @@ import bcrypt from 'bcrypt';
 import { MembershipModel, MessageModel, UserModel } from './db.js';
 import mongoose from 'mongoose';
 //---------------AUTH ENDPOINTS-----------------
+app.use(cors());
 app.use(express.json());
 app.post("/signup", async (req, res) => {
     try {
@@ -18,7 +20,7 @@ app.post("/signup", async (req, res) => {
         }
         const existingUser = await UserModel.findOne({ username });
         if (existingUser) {
-            return res.status(409).json({ error: "User already exists" });
+            return res.status(409).json({ message: "User already exists" });
         }
         const hashedPassword = await bcrypt.hash(password, 10);
         const user = await UserModel.create({
@@ -31,7 +33,7 @@ app.post("/signup", async (req, res) => {
     }
     catch (err) {
         console.error(err);
-        res.status(500).json({ error: "Server error" });
+        res.status(500).json({ message: "Server error" });
     }
 });
 app.post("/signin", async (req, res) => {
@@ -47,7 +49,7 @@ app.post("/signin", async (req, res) => {
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
             return res.status(401).json({
-                error: "Invalid credentials"
+                message: "Invalid credentials"
             });
         }
         const token = jwt.sign({
