@@ -43,7 +43,7 @@ app.post("/signin", async (req, res) => {
         const user = await UserModel.findOne({ username });
         if (!user) {
             return res.status(401).json({
-                error: "Invalid credentials"
+                message: "Invalid credentials"
             });
         }
         const isMatch = await bcrypt.compare(password, user.password);
@@ -89,6 +89,7 @@ wss.on('connection', (Socket, req) => {
             data = JSON.parse(message.toString());
         }
         catch {
+            Socket.send(JSON.stringify({ error: "Invalid JSON format" }));
             return;
         }
         if (data.type === 'join') { //user wants to join the server
@@ -97,16 +98,16 @@ wss.on('connection', (Socket, req) => {
                 let sockets = Roomsockets.get(data.payload.roomId);
                 //if this roomId is not present , socket will be empty
                 if (!sockets) {
-                    Socket.send("This room does not exist!!");
+                    Socket.send(JSON.stringify({ error: "This room does not exist!!" }));
                 }
                 //if the socket is already present in the set 
                 else if (sockets?.has(Socket)) {
-                    Socket.send("User is already part of this room");
+                    Socket.send(JSON.stringify({ error: "User is already part of this room" }));
                 }
                 else { //room is present and user was not previously present
                     sockets?.add(Socket);
                     //make an entry when a user joins a group
-                    await MembershipModel.findOneAndUpdate({
+                    const join_relationship = await MembershipModel.findOneAndUpdate({
                         userId: Socket.userId,
                         roomId: data.payload.roomId,
                     }, {
@@ -117,7 +118,11 @@ wss.on('connection', (Socket, req) => {
                     }, {
                         upsert: true
                     });
-                    Socket.send("Joined Room : " + data.payload.roomId);
+                    const message = JSON.stringify({
+                        type: "join",
+                        payload: join_relationship
+                    });
+                    Socket.send(message);
                     console.log("User now part of room : " + data.payload.roomId);
                 }
             }
@@ -140,7 +145,7 @@ wss.on('connection', (Socket, req) => {
             Roomsockets.set(uid, s);
             try {
                 //make an entry with this user and room   
-                await MembershipModel.create({
+                const relationship = await MembershipModel.create({
                     userId: Socket.userId,
                     roomId: uid,
                     role: "admin",
@@ -150,7 +155,11 @@ wss.on('connection', (Socket, req) => {
                 const user = await UserModel.findOne({
                     _id: Socket.userId
                 });
-                Socket.send("Room Id : " + uid);
+                const message = JSON.stringify({
+                    type: "create",
+                    payload: relationship
+                });
+                Socket.send(message);
                 console.log("Room :" + uid + " created by user : " + user?.username);
             }
             catch (e) {
@@ -161,9 +170,8 @@ wss.on('connection', (Socket, req) => {
             try {
                 //find the room which user wants to leave
                 let sockets = Roomsockets.get(data.payload.roomId);
-                console.log("2");
                 if (!sockets) {
-                    Socket.send("Room : " + data.payload.roomId + "doesn't exist");
+                    Socket.send(JSON.stringify({ error: "Room doesn't exist" }));
                 }
                 else {
                     const deleted = sockets?.delete(Socket);
@@ -177,16 +185,16 @@ wss.on('connection', (Socket, req) => {
                             Roomsockets.set(data.payload.roomId, sockets);
                         }
                         //delete the entry from the relationship 
-                        await MembershipModel.findOneAndDelete({
+                        const relationship = await MembershipModel.findOneAndDelete({
                             userId: Socket.userId,
                             roomId: data.payload.roomId
                         });
-                        //for loggin the name and roomId  
-                        const user = await UserModel.findOne({
-                            _id: Socket.userId
+                        const message = JSON.stringify({
+                            type: "leave",
+                            payload: relationship
                         });
-                        Socket.send("User: " + user + " , left the Room: " + data.payload.roomId);
-                        console.log("User: " + user?.username + " left the room : " + data.payload.roomId);
+                        Socket.send(message);
+                        console.log("User left the room : " + data.payload.roomId);
                     }
                     else { //Socket is not part of this room
                         Socket.send("Could not delete user from room : " + data.payload.roomId);
@@ -214,6 +222,15 @@ wss.on('connection', (Socket, req) => {
                 content: data.payload.content,
                 sentAt: Date.now()
             });
+            //update memebership model , joined at to Date.now
+            await MembershipModel.findOneAndUpdate({
+                userId: Socket.userId,
+                roomId: data.payload.roomId
+            }, {
+                $set: {
+                    joinedAt: Date.now()
+                }
+            });
             const message = JSON.stringify({
                 type: "message",
                 payload: saved
@@ -221,11 +238,16 @@ wss.on('connection', (Socket, req) => {
             console.log(message);
             sockets?.forEach(s => s.send(message));
         }
-        else if (data.type === 'rooms') {
+        else if (data.type === 'rooms') { // sends the room details of the user in dashboard 
             const userRooms = await MembershipModel.find({
                 userId: Socket.userId
+            }).sort({
+                joinedAt: -1 //descending order
             });
-            const response = JSON.stringify(userRooms);
+            const response = JSON.stringify({
+                type: "rooms",
+                payload: userRooms
+            });
             Socket.send(response);
         }
     });
