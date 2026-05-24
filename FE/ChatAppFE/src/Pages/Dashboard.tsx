@@ -1,6 +1,14 @@
+import { use, useEffect , useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Sidebar, type Room } from "../Components/Sidebar";
+import { Chatbox } from "../Components/Chatbox";
+import { useMessageStore, useRoomStore, useSocketStore } from "../store";
+
 export function Dashboard() {
 
-  
+  const SetMessages = useMessageStore((state) => state.SetMessages );
+  const addMessage = useMessageStore((state) => state.addMessage );
+  const Messages = useMessageStore((state) => state.Messages );
   const setSocket = useSocketStore((state) => state.SetSocket);
 
   const navigate = useNavigate();
@@ -30,9 +38,15 @@ export function Dashboard() {
         
     // all rooms of the user comes from the server
     ws.onmessage = (event) => {
-
       const data = JSON.parse(event.data);
-      SetRooms(data);
+      if(data.type === 'rooms'){
+          SetRooms(data.payload);
+      }
+      else if(data.type === 'history'){
+          SetMessages(data.payload);
+      }else if(data.type === 'message') {
+          addMessage(data.payload);
+      }
     }
     ws.onerror = (e) => {
       console.log("Websocket error : " + e);
@@ -51,6 +65,6 @@ export function Dashboard() {
     <div className="flex ">
       <Sidebar Rooms ={Rooms} />
       <Chatbox  />
-        </div>
-    );
+    </div>
+  );
 }

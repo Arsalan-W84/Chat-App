@@ -1,17 +1,22 @@
 
 import axios from "axios";
-import { useRef } from "react"
+import { useRef, useState } from "react"
+import { useNavigate } from "react-router-dom";
 
 export function Landing () {
     const usernameRef = useRef<HTMLInputElement> (null);
     const PasswordRef = useRef<HTMLInputElement> (null);
+    const [Disable , setDisable] = useState(false);
+    const navigate = useNavigate();
 
     async function onSignup() {
+        setDisable(true);
         const username = usernameRef.current?.value.trim();
         const password = PasswordRef.current?.value.trim();
         
         if(username =="" || password=="" ){
             alert("Input fields cannot be empty");
+            setDisable(false);
             return;
             
         }
@@ -24,6 +29,7 @@ export function Landing () {
             );
             if(response.status === 200){
                 alert("Succesfully signed up!!");
+                setDisable(false);
             }
             
         }catch(e : any) {
@@ -33,17 +39,19 @@ export function Landing () {
                 console.log("Something went wrong!");
             }
         }
+        setDisable(false);
     }
 
     async function onLogin() {
-        console.log("Login");
+        setDisable(true);
         const username = usernameRef.current?.value.trim();
         const password = PasswordRef.current?.value.trim();
 
         if(username =="" || password=="" ){
             alert("Input fields cannot be empty");
+            setDisable(false);
             return;
-            
+           
         } 
         try{
             const response = await axios.post("http://localhost:3000/signin" , 
@@ -56,15 +64,19 @@ export function Landing () {
             if(response.status === 200){
                 const token = response.data.token;
                 localStorage.setItem("token" , token);
+                alert("Login Successful");
+                navigate("/dashboard");
+
             }
             
         }catch(e : any) {
             if(e.response){
-                alert(e.response.data.message);
+                console.log(e.response.data.message);
             }else{
                 console.log("Something went wrong!");
             }
         }
+        setDisable(false);
     }
 
     return (
@@ -86,13 +98,13 @@ export function Landing () {
                 </div>
 
                 <div className="m-4 buttons bg-blue-700 rounded-2xl text-white">
-                    <button onClick={onLogin} className="p-2 w-full">Login</button>
+                    <button onClick={onLogin} disabled={Disable} className="p-2 w-full">{(Disable)?'...' : 'Login'}</button>
                 </div>
 
-                <div className="pl-4">Don't have an acoount ? Sign up first</div>
+                <div className="pl-4 text-white">Don't have an acoount ? Sign up first</div>
 
                 <div className="m-4 buttons bg-blue-700 rounded-2xl text-white">
-                    <button onClick={onSignup} className="p-2 w-full">Signup</button>
+                    <button onClick={onSignup} disabled={Disable} className="p-2 w-full">{(Disable)?'...' : 'Signup'}</button>
                 </div>
             </div>
         </div>
