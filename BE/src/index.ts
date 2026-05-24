@@ -164,7 +164,16 @@ wss.on('connection' , (Socket , req) => {
                 console.log(e);
             }
             //return all the previous chats of this room to this user ????
+            const chatHistory = MessageModel.find({
+                roomId : data.payload.roomId
+            }).sort({
+                sentAt : -1
+            }).limit(50);
 
+            Socket.send(JSON.stringify({
+                type: "history",
+                payload: chatHistory
+            }));
         } else if(data.type === 'create') { // user wants to create a room
             //create a roomId
             const list = ['1','2','3','4','5','6','7','8','9','a','b','c','d','e','i','o','u'];
@@ -256,8 +265,11 @@ wss.on('connection' , (Socket , req) => {
             //first check if user is part of this room or not
             const sockets = Roomsockets.get(data.payload.roomId);
             if(!sockets){
-                Socket.send(JSON.stringify({error : "Room does not exist!"}));
-                return ;
+                const roomExists = await MembershipModel.findOne({ roomId: data.payload.roomId });
+                if(!roomExists){
+                    Socket.send(JSON.stringify({error : "This room does not exist!!"}));
+                    return ;
+                }
             }
             const userfoundinroom = sockets?.has(Socket);
             if(userfoundinroom === false){
@@ -295,13 +307,37 @@ wss.on('connection' , (Socket , req) => {
             }).sort({
                 joinedAt : -1 //descending order
             });
-
+            //what if RoomSockets is empty , due to BE restart?
+            userRooms.forEach( room => {
+                let sockets = Roomsockets.get(room.roomId!);
+                if(!sockets) {
+                    sockets = new Set<WebSocket> ();
+                    Roomsockets.set(room.roomId! , sockets);
+                }
+                if(sockets?.has(Socket) == false) {
+                    sockets.add(Socket);
+                }
+            });
+            
             const response = JSON.stringify({
                 type : "rooms",
                 payload : userRooms
             });
             Socket.send(response);
-        }else{
+        }else if(data.type === 'history') {
+            //return all the previous chats of this room to this user 
+            const chatHistory = await MessageModel.find({
+                roomId : data.payload.roomId
+            }).sort({
+                sentAt : -1
+            }).limit(50);
+            
+            Socket.send(JSON.stringify({
+                type: "history",
+                payload: chatHistory
+            }));
+
+        } else{
             Socket.send(JSON.stringify({
                 error : "Unsupported request"
             }));

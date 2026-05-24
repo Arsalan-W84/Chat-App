@@ -77,7 +77,7 @@ wss.on('connection', (Socket, req) => {
         Socket.userId = decoded.userId;
     }
     catch (e) {
-        Socket.send("Unauthoried");
+        Socket.send(JSON.stringify({ error: "Unauthorized" }));
         Socket.close();
         return;
     }
@@ -96,13 +96,21 @@ wss.on('connection', (Socket, req) => {
             try {
                 //get all sockets of this roomId from RoomSockets map
                 let sockets = Roomsockets.get(data.payload.roomId);
-                //if this roomId is not present , socket will be empty
+                //if this roomId is not present in memory, check in DB
                 if (!sockets) {
-                    Socket.send(JSON.stringify({ error: "This room does not exist!!" }));
+                    const roomExists = await MembershipModel.findOne({ roomId: data.payload.roomId });
+                    if (!roomExists) {
+                        Socket.send(JSON.stringify({ error: "This room does not exist!!" }));
+                        return;
+                    }
+                    //if room exists inDB and not in memory , create in memory : 
+                    sockets = new Set();
+                    Roomsockets.set(data.payload.roomId, sockets);
                 }
                 //if the socket is already present in the set 
-                else if (sockets?.has(Socket)) {
+                if (sockets?.has(Socket)) {
                     Socket.send(JSON.stringify({ error: "User is already part of this room" }));
+                    return;
                 }
                 else { //room is present and user was not previously present
                     sockets?.add(Socket);
@@ -130,6 +138,15 @@ wss.on('connection', (Socket, req) => {
                 console.log(e);
             }
             //return all the previous chats of this room to this user ????
+            const chatHistory = MessageModel.find({
+                roomId: data.payload.roomId
+            }).sort({
+                sentAt: -1
+            }).limit(50);
+            Socket.send(JSON.stringify({
+                type: "history",
+                payload: chatHistory
+            }));
         }
         else if (data.type === 'create') { // user wants to create a room
             //create a roomId
@@ -168,10 +185,23 @@ wss.on('connection', (Socket, req) => {
         }
         else if (data.type === 'leave') { // user wants to leave a room
             try {
-                //find the room which user wants to leave
+                //delete the entry from the relationship 
+                const relationship = await MembershipModel.findOneAndDelete({
+                    userId: Socket.userId,
+                    roomId: data.payload.roomId
+                });
+                //if room did not exist in DB : 
+                if (!relationship) {
+                    Socket.send(JSON.stringify({
+                        error: "You are not part of this room!"
+                    }));
+                    return;
+                }
+                //find the room in memory
                 let sockets = Roomsockets.get(data.payload.roomId);
                 if (!sockets) {
-                    Socket.send(JSON.stringify({ error: "Room doesn't exist" }));
+                    // room did not exist locally bcz after server restart , RoomSockets becomes empty . So we deleted from DB , if it exists in memory too then we delete from there  , otherwise its fine .  
+                    return;
                 }
                 else {
                     const deleted = sockets?.delete(Socket);
@@ -184,11 +214,6 @@ wss.on('connection', (Socket, req) => {
                             //@ts-ignore
                             Roomsockets.set(data.payload.roomId, sockets);
                         }
-                        //delete the entry from the relationship 
-                        const relationship = await MembershipModel.findOneAndDelete({
-                            userId: Socket.userId,
-                            roomId: data.payload.roomId
-                        });
                         const message = JSON.stringify({
                             type: "leave",
                             payload: relationship
@@ -197,7 +222,8 @@ wss.on('connection', (Socket, req) => {
                         console.log("User left the room : " + data.payload.roomId);
                     }
                     else { //Socket is not part of this room
-                        Socket.send("Could not delete user from room : " + data.payload.roomId);
+                        Socket.send(JSON.stringify({ error: "Could not delete user from room" }));
+                        return;
                     }
                 }
             }
@@ -209,11 +235,16 @@ wss.on('connection', (Socket, req) => {
             //first check if user is part of this room or not
             const sockets = Roomsockets.get(data.payload.roomId);
             if (!sockets) {
-                Socket.send("Room does not exist!");
+                const roomExists = await MembershipModel.findOne({ roomId: data.payload.roomId });
+                if (!roomExists) {
+                    Socket.send(JSON.stringify({ error: "This room does not exist!!" }));
+                    return;
+                }
             }
             const userfoundinroom = sockets?.has(Socket);
             if (userfoundinroom === false) {
-                Socket.send("User not a part of this room .");
+                Socket.send(JSON.stringify({ error: "User not a part of this room ." }));
+                return;
             }
             //enter message into the Database
             const saved = await MessageModel.create({
@@ -244,11 +275,39 @@ wss.on('connection', (Socket, req) => {
             }).sort({
                 joinedAt: -1 //descending order
             });
+            //what if RoomSockets is empty , due to BE restart?
+            userRooms.forEach(room => {
+                let sockets = Roomsockets.get(room.roomId);
+                if (!sockets) {
+                    sockets = new Set();
+                    Roomsockets.set(room.roomId, sockets);
+                }
+                if (sockets?.has(Socket) == false) {
+                    sockets.add(Socket);
+                }
+            });
             const response = JSON.stringify({
                 type: "rooms",
                 payload: userRooms
             });
             Socket.send(response);
+        }
+        else if (data.type === 'history') {
+            //return all the previous chats of this room to this user 
+            const chatHistory = await MessageModel.find({
+                roomId: data.payload.roomId
+            }).sort({
+                sentAt: -1
+            }).limit(50);
+            Socket.send(JSON.stringify({
+                type: "history",
+                payload: chatHistory
+            }));
+        }
+        else {
+            Socket.send(JSON.stringify({
+                error: "Unsupported request"
+            }));
         }
     });
     Socket.on("close", () => {
