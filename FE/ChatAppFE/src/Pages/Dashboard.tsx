@@ -1,8 +1,8 @@
-import { use, useEffect , useRef, useState } from "react";
+import {useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Sidebar, type Room } from "../Components/Sidebar";
 import { Chatbox } from "../Components/Chatbox";
-import { useMessageStore, useRoomStore, useSocketStore } from "../store";
+import { useMessageStore, useRoomStore, useSocketStore, useUserStore, type User } from "../store";
 
 export function Dashboard() {
 
@@ -15,17 +15,17 @@ export function Dashboard() {
   const Rooms = useRoomStore((state) => state.Rooms);
   const SetRooms = useRoomStore((state) => state.SetRooms);
 
+  const SetUser = useUserStore((state) => state.SetUser);
+
   //upon login in all rooms of the user will be displayed on the left sidebar
   useEffect(() => {
     if(localStorage.getItem("token") === null ){
-      alert("UNAUTHORIZED! PLEASE LOGIN");
+      alert("Session Expired ! Log in to continue .");
       //navigte to landing page
       navigate("/");
     }
     const ws = new WebSocket("ws://localhost:8080?token=" + localStorage.getItem('token'));
-    setSocket(ws);
-      
-        
+    setSocket(ws);   
     ws.onopen = () => {
         console.log("Connected!");
         const jsondata ={
@@ -41,6 +41,12 @@ export function Dashboard() {
       const data = JSON.parse(event.data);
       if(data.type === 'rooms'){
           SetRooms(data.payload);
+          //console.log(data.payload[0].userId); 
+          const user : User = {
+            _id : data.payload[0].userId._id ,
+            username : data.payload[0].userId.username
+          }
+          SetUser(user);
       }
       else if(data.type === 'history'){
           SetMessages(data.payload);

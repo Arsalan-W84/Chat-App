@@ -1,4 +1,4 @@
-import { useRoomStore } from "../store";
+import { useRoomStore, useUserStore } from "../store";
 
 export interface Room {
     _id : string, 
@@ -12,9 +12,11 @@ interface Sidebarprops {
 }
 export function Sidebar({Rooms} : Sidebarprops) {
     const SetCurrentRoomId = useRoomStore((state) => state.SetCurrentRoomId);
+    const User = useUserStore((state) => state.User);
 
     return (
         <div className="w-[30%] h-screen bg-gray-600 overflow-y-auto border border-gray-400">
+            <div className="p-2 text-white text-2xl text-bold"> Welcome Back {User?.username} </div>
             <div className="flex justify-between">
                 <button className="m-2 p-3 bg-blue-300">Create Room </button>
                 <button className="m-2 p-3 bg-blue-300"> Join A Room</button>

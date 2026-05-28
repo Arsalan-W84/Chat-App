@@ -2,6 +2,22 @@
 import { create } from "zustand";
 import { type Room } from "./Components/Sidebar";
 
+
+export type User = {
+     _id : string , 
+    username : string
+}
+type UserStore = { 
+    User : User | null,
+    SetUser : (u : User) => void 
+}
+
+export const useUserStore = create<UserStore> ((set) => ({
+    User : null , 
+    SetUser : (u ) => {
+            set({User : u});
+    }
+}))
 //Socket store -----------
 type SocketStore = {
     Socket : WebSocket | null,
