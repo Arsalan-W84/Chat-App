@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
-import { useMessageStore, useRoomStore, useSocketStore } from '../store';
+import { useMessageStore, useRoomStore, useSocketStore, useUserStore } from '../store';
 
 export function Chatbox() {
 
     const Socket = useSocketStore((state) => state.Socket);
     const CurrentRoomId = useRoomStore((state) => state.CurrentRoomId);
     const Messages = useMessageStore((state) => state.Messages);
+    const User = useUserStore((state) => state.User);
    //ref to take inputbox string
     const InputBoxRef = useRef<HTMLInputElement>(null); 
 
@@ -61,7 +62,7 @@ export function Chatbox() {
               {
                     
                   Messages.map((m,i) => 
-                  <div key={i} className='m-1 p-1 flex'>
+                  <div key={i} className= {`m-1 p-1 flex ${(m.sender != User?._id)? "justify-end" : ""}`}>
                     
                     <span className='p-2 bg-blue-300 rounded-xl max-w-[75%] break-words w-fit'>
                         {m.content}
