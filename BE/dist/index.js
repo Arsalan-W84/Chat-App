@@ -272,7 +272,8 @@ wss.on('connection', (Socket, req) => {
         else if (data.type === 'rooms') { // sends the room details of the user in dashboard 
             const userRooms = await MembershipModel.find({
                 userId: Socket.userId
-            }).sort({
+            }).populate("userId", "username ")
+                .sort({
                 joinedAt: -1 //descending order
             });
             //what if RoomSockets is empty , due to BE restart?

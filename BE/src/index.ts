@@ -304,7 +304,8 @@ wss.on('connection' , (Socket , req) => {
            
             const userRooms = await MembershipModel.find({
                 userId : (Socket as any).userId
-            }).sort({
+            }).populate("userId" , "username ")
+            .sort({
                 joinedAt : -1 //descending order
             });
             //what if RoomSockets is empty , due to BE restart?
