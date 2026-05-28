@@ -164,7 +164,7 @@ wss.on('connection' , (Socket , req) => {
                 console.log(e);
             }
             //return all the previous chats of this room to this user ????
-            const chatHistory = MessageModel.find({
+            const chatHistory = await MessageModel.find({
                 roomId : data.payload.roomId
             }).sort({
                 sentAt : -1
