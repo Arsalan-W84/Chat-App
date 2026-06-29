@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { ref } from "node:process";
 const Schema = mongoose.Schema;
 
 const UserSchema = new Schema({
@@ -27,7 +28,7 @@ MembershipSchema.index({ userId: 1, roomId: 1 }, { unique: true });
 
 
 const MessageSchema = new Schema({
-    sender : { type : String , required : true } ,
+    sender : { type : mongoose.Schema.Types.ObjectId , ref : 'users' , required : true } ,
     roomId : { type : String }  ,
     content : {type : String } , 
     sentAt : {type : Date , default : Date.now()}

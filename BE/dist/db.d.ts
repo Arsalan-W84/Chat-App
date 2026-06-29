@@ -177,21 +177,21 @@ export declare const MembershipModel: mongoose.Model<{
     __v: number;
 }>;
 export declare const MessageModel: mongoose.Model<{
-    sender: string;
+    sender: mongoose.Types.ObjectId;
     sentAt: NativeDate;
     roomId?: string | null;
     content?: string | null;
 }, {}, {}, {
     id: string;
 }, mongoose.Document<unknown, {}, {
-    sender: string;
+    sender: mongoose.Types.ObjectId;
     sentAt: NativeDate;
     roomId?: string | null;
     content?: string | null;
 }, {
     id: string;
 }, mongoose.DefaultSchemaOptions> & Omit<{
-    sender: string;
+    sender: mongoose.Types.ObjectId;
     sentAt: NativeDate;
     roomId?: string | null;
     content?: string | null;
@@ -202,19 +202,19 @@ export declare const MessageModel: mongoose.Model<{
 }, "id"> & {
     id: string;
 }, mongoose.Schema<any, mongoose.Model<any, any, any, any, any, any, any>, {}, {}, {}, {}, mongoose.DefaultSchemaOptions, {
-    sender: string;
+    sender: mongoose.Types.ObjectId;
     sentAt: NativeDate;
     roomId?: string | null;
     content?: string | null;
 }, mongoose.Document<unknown, {}, {
-    sender: string;
+    sender: mongoose.Types.ObjectId;
     sentAt: NativeDate;
     roomId?: string | null;
     content?: string | null;
 }, {
     id: string;
 }, mongoose.DefaultSchemaOptions> & Omit<{
-    sender: string;
+    sender: mongoose.Types.ObjectId;
     sentAt: NativeDate;
     roomId?: string | null;
     content?: string | null;
@@ -225,7 +225,7 @@ export declare const MessageModel: mongoose.Model<{
 }, "id"> & {
     id: string;
 }, unknown, {
-    sender: string;
+    sender: mongoose.Types.ObjectId;
     sentAt: NativeDate;
     roomId?: string | null;
     content?: string | null;
@@ -234,7 +234,7 @@ export declare const MessageModel: mongoose.Model<{
 } & {
     __v: number;
 }>, {
-    sender: string;
+    sender: mongoose.Types.ObjectId;
     sentAt: NativeDate;
     roomId?: string | null;
     content?: string | null;

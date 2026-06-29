@@ -253,6 +253,7 @@ wss.on('connection', (Socket, req) => {
                 content: data.payload.content,
                 sentAt: Date.now()
             });
+            await saved.populate("sender", "_id username");
             //update memebership model , joined at to Date.now
             await MembershipModel.findOneAndUpdate({
                 userId: Socket.userId,
@@ -297,9 +298,10 @@ wss.on('connection', (Socket, req) => {
             //return all the previous chats of this room to this user 
             const chatHistory = await MessageModel.find({
                 roomId: data.payload.roomId
-            }).sort({
+            }).populate("sender", "_id username").sort({
                 sentAt: -1
             }).limit(50);
+            //message model does not store the senderinfo
             Socket.send(JSON.stringify({
                 type: "history",
                 payload: chatHistory
