@@ -53,7 +53,10 @@ export const useRoomStore = create<RoomStore>((set) => ({
 
 //message store --------
 type Message = {
-    sender : string ,
+    sender : {
+        _id : string , 
+        username : string
+    } ,
     roomId : string  ,
     content : string , 
     sentAt : Date

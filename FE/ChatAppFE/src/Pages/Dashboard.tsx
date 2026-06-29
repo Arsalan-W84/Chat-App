@@ -1,4 +1,4 @@
-import {useEffect, useState } from "react";
+import {useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Sidebar, type Room } from "../Components/Sidebar";
 import { Chatbox } from "../Components/Chatbox";
@@ -52,6 +52,7 @@ export function Dashboard() {
           SetMessages(data.payload);
       }else if(data.type === 'message') {
           addMessage(data.payload);
+          //console.log(data.payload);
       }
     }
     ws.onerror = (e) => {

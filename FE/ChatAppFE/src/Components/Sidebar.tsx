@@ -22,10 +22,10 @@ export function Sidebar({Rooms} : Sidebarprops) {
                 <button className="m-2 p-3 bg-blue-300"> Join A Room</button>
             </div>
             <div className="m-1 ml-3 text-white text-2xl">
-                Chats
+                Your Chats
             </div>
             {
-                Rooms.map(room => (<div key={room._id} onClick={()=>{SetCurrentRoomId(room.roomId)}} className="m-1 p-3 bg-gray-500 text-white border rounded-2xl">
+                Rooms.map(room => (<div key={room._id} onClick={()=>{SetCurrentRoomId(room.roomId)}} className="m-1 p-3 bg-gray-500 hover:bg-gray-600 hover:cursor-pointer text-white border rounded-2xl">
                     {room.roomId} 
                 </div>
             ))}
