@@ -97,7 +97,7 @@ wss.on('connection' , (Socket , req) => {
         Socket.close();
         return ;
     }
-    console.log("Socket connected");
+    //console.log("Socket connected");
 
     Socket.on('error' , console.error);
 
@@ -301,7 +301,7 @@ wss.on('connection' , (Socket , req) => {
                 type : "message" , 
                 payload : saved
             });
-            console.log(message);
+            //console.log(message);
             
             sockets?.forEach(s=> s.send(message));
         }else if(data.type === 'rooms') {// sends the room details of the user in dashboard 
