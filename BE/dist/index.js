@@ -81,7 +81,7 @@ wss.on('connection', (Socket, req) => {
         Socket.close();
         return;
     }
-    console.log("Socket connected");
+    //console.log("Socket connected");
     Socket.on('error', console.error);
     Socket.on('message', async (message) => {
         let data;
@@ -100,7 +100,7 @@ wss.on('connection', (Socket, req) => {
                 if (!sockets) {
                     const roomExists = await MembershipModel.findOne({ roomId: data.payload.roomId });
                     if (!roomExists) {
-                        Socket.send(JSON.stringify({ error: "This room does not exist!!" }));
+                        Socket.send(JSON.stringify({ type: "join", error: "This room does not exist!!" }));
                         return;
                     }
                     //if room exists inDB and not in memory , create in memory : 
@@ -109,7 +109,7 @@ wss.on('connection', (Socket, req) => {
                 }
                 //if the socket is already present in the set 
                 if (sockets?.has(Socket)) {
-                    Socket.send(JSON.stringify({ error: "User is already part of this room" }));
+                    Socket.send(JSON.stringify({ type: "join", error: "User is already part of this room" }));
                     return;
                 }
                 else { //room is present and user was not previously present
@@ -124,7 +124,8 @@ wss.on('connection', (Socket, req) => {
                             joinedAt: Date.now()
                         }
                     }, {
-                        upsert: true
+                        upsert: true,
+                        new: true //!!new property returns the updated/inserted document , w/o this the old value or null if it was created
                     });
                     const message = JSON.stringify({
                         type: "join",
@@ -150,16 +151,21 @@ wss.on('connection', (Socket, req) => {
         }
         else if (data.type === 'create') { // user wants to create a room
             //create a roomId
-            const list = ['1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'i', 'o', 'u'];
-            let n = list.length;
+            const list = [
+                ...'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+                ...'abcdefghijklmnopqrstuvwxyz',
+                ...'0123456789'
+            ];
+            const n = list.length;
             let uid = "";
-            for (let i = 0; i < 8; i++) {
-                uid += list[Math.floor(Math.random() * n)];
-            }
-            //make an entry in Roomsockets with this new room 
-            let s = new Set();
-            s.add(Socket);
-            Roomsockets.set(uid, s);
+            let exists;
+            do {
+                uid = "";
+                for (let i = 0; i < 8; i++) {
+                    uid += list[Math.floor(Math.random() * n)];
+                }
+                exists = await MembershipModel.exists({ roomId: uid });
+            } while (exists);
             try {
                 //make an entry with this user and room   
                 const relationship = await MembershipModel.create({
@@ -168,19 +174,23 @@ wss.on('connection', (Socket, req) => {
                     role: "admin",
                     joinedAt: Date.now()
                 });
-                //for loggin the name and roomId  
-                const user = await UserModel.findOne({
-                    _id: Socket.userId
-                });
+                //make an entry in Roomsockets with this new room 
+                let s = new Set();
+                s.add(Socket);
+                Roomsockets.set(uid, s);
                 const message = JSON.stringify({
                     type: "create",
                     payload: relationship
                 });
                 Socket.send(message);
-                console.log("Room :" + uid + " created by user : " + user?.username);
+                console.log("Room :" + uid + " created");
             }
             catch (e) {
                 console.log("errror :  " + e);
+                Socket.send(JSON.stringify({
+                    type: "create",
+                    error: e
+                }));
             }
         }
         else if (data.type === 'leave') { // user wants to leave a room
@@ -267,7 +277,7 @@ wss.on('connection', (Socket, req) => {
                 type: "message",
                 payload: saved
             });
-            console.log(message);
+            //console.log(message);
             sockets?.forEach(s => s.send(message));
         }
         else if (data.type === 'rooms') { // sends the room details of the user in dashboard 
