@@ -53,11 +53,7 @@ export function Dashboard() {
       if(data.type === 'rooms'){
           SetRooms(data.payload);
           //console.log(data.payload[0].userId); 
-          const user : User = {
-            _id : data.payload[0].userId._id ,
-            username : data.payload[0].userId.username
-          }
-          SetUser(user);
+          
       }
       else if(data.type === 'history'){
           SetMessages(data.payload);

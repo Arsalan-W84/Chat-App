@@ -2,8 +2,10 @@
 import axios from "axios";
 import { useRef, useState } from "react"
 import { useNavigate } from "react-router-dom";
+import { useUserStore } from "../store";
 
 export function Landing () {
+    const SetUser = useUserStore((state) => state.SetUser);
     const usernameRef = useRef<HTMLInputElement> (null);
     const PasswordRef = useRef<HTMLInputElement> (null);
     const [Disable , setDisable] = useState(false);
@@ -62,6 +64,8 @@ export function Landing () {
             );
 
             if(response.status === 200){
+                const user = response.data.user;
+                SetUser(user);
                 const token = response.data.token;
                 localStorage.setItem("token" , token);
                 alert("Login Successful");
@@ -71,9 +75,9 @@ export function Landing () {
             
         }catch(e : any) {
             if(e.response){
-                console.log(e.response.data.message);
+                alert(e.response.data.message);
             }else{
-                console.log("Something went wrong!");
+                alert("Something went wrong!");
             }
         }
         setDisable(false);
