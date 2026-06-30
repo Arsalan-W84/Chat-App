@@ -76,4 +76,29 @@ export const useMessageStore = create<MessageStore>((set) => ({
     }
 }))
 
+//---------MODALS SHOW AND HIDE STATES---------
+
+type modalstore = {
+    joinRoom : boolean ,
+    createRoom : boolean,
+    leaveRoom : boolean ,
+    toggleJoinRoom : () => void,
+    toggleCreateRoom : () => void,
+    toggleLeaveRoom : () => void
+
+}
+export const usemodalstore = create<modalstore>((set) => ({
+    joinRoom : false,
+    createRoom : false,
+    leaveRoom : false,
+    toggleCreateRoom : () => {
+        set((state) => ({createRoom : !state.createRoom}));
+    },
+    toggleJoinRoom : () => {
+        set((state) => ({joinRoom : !state.joinRoom}));
+    },
+    toggleLeaveRoom : () => {
+        set((state) => ({leaveRoom : !state.leaveRoom}));
+    }
+}))
 

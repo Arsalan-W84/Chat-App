@@ -58,10 +58,10 @@ export function Chatbox() {
     
     <div className=' w-[70%] h-screen bg-[#012938] flex justify-center items-center'>
         <div className='p-1 w-full h-full bg-[#013748] border-xl  flex flex-col'>
-            <div className='mb-1 w-full h-[5%] text-white flex justify-between'>
+            {CurrentRoomId && <div className='mb-1 w-full h-[5%] text-white flex justify-between'>
                 <div className='p-1'>Room Id : {CurrentRoomId} </div>
                 <button className='p-1 bg-blue-500 rounded-2xl'> Leave Room </button>
-            </div>
+            </div>}
             
             <div className='p-2 h-[90%] bg-gray-600  rounded-sm text-white overflow-y-auto'>
               {
@@ -92,20 +92,18 @@ export function Chatbox() {
               <div ref={bottomRef} />
             </div>
 
-            <div className='mt-2 flex justify-between '>
+            {CurrentRoomId &&  <div className='mt-2 flex justify-between '>
                 <div className='m-1 w-[80%] bg-gray-800 rounded-3xl'>
                   <input ref={InputBoxRef} placeholder='message...' className='p-3 w-full outline-none text-white'></input>
                 </div>
                 <div className='m-1'>
                     <button className= 'mr-2 p-3 bg-blue-500 hover:bg-blue-600 rounded-3xl text-white'> Add </button>
-                    
-                        
 
-                    <button onClick={onClickHandler} disabled={InputBoxRef.current?.value == null} className='p-3 bg-blue-500 hover:bg-blue-600 rounded-3xl text-white'>
+                    <button onClick={onClickHandler} disabled={InputBoxRef.current?.value == null} className='p-3 bg-blue-500  hover:bg-blue-600 rounded-3xl text-white'>
                         Send
                     </button>
                 </div>
-            </div>
+            </div>}
         </div>
     </div>
     )
