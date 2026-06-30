@@ -11,14 +11,15 @@ type UserStore = {
     User : User | null,
     SetUser : (u : User) => void 
 }
-
 export const useUserStore = create<UserStore> ((set) => ({
     User : null , 
     SetUser : (u ) => {
             set({User : u});
     }
 }))
-//Socket store -----------
+
+
+//----------Socket store -----------
 type SocketStore = {
     Socket : WebSocket | null,
     SetSocket : (socket : WebSocket) => void
@@ -30,12 +31,13 @@ export const useSocketStore = create<SocketStore>((set) => ({
     } 
 }));
 
-//Room store----------
+//----------Room store----------
 type RoomStore = { 
     Rooms : Room[] ,
     CurrentRoomId : string,
     SetRooms : (rooms : Room[]) => void,
-    SetCurrentRoomId : (roomId : string) => void
+    SetCurrentRoomId : (roomId : string) => void,
+    AddRoom : (r : Room) => void
 }
 
 export const useRoomStore = create<RoomStore>((set) => ({
@@ -46,6 +48,10 @@ export const useRoomStore = create<RoomStore>((set) => ({
     CurrentRoomId : "",
     SetCurrentRoomId(roomId : string) {
         set({CurrentRoomId : roomId})
+    },
+    AddRoom : (r : Room) => {
+        set((state) => ({Rooms : [...state.Rooms , r]}) );
+        
     }
 
 }));
@@ -79,26 +85,26 @@ export const useMessageStore = create<MessageStore>((set) => ({
 //---------MODALS SHOW AND HIDE STATES---------
 
 type modalstore = {
-    joinRoom : boolean ,
-    createRoom : boolean,
-    leaveRoom : boolean ,
+    JoinRoom : boolean ,
+    CreateRoom : boolean,
+    LeaveRoom : boolean ,
     toggleJoinRoom : () => void,
     toggleCreateRoom : () => void,
     toggleLeaveRoom : () => void
 
 }
 export const usemodalstore = create<modalstore>((set) => ({
-    joinRoom : false,
-    createRoom : false,
-    leaveRoom : false,
+    JoinRoom : false,
+    CreateRoom : false,
+    LeaveRoom : false,
     toggleCreateRoom : () => {
-        set((state) => ({createRoom : !state.createRoom}));
+        set((state) => ({CreateRoom : !state.CreateRoom}));
     },
     toggleJoinRoom : () => {
-        set((state) => ({joinRoom : !state.joinRoom}));
+        set((state) => ({JoinRoom : !state.JoinRoom}));
     },
     toggleLeaveRoom : () => {
-        set((state) => ({leaveRoom : !state.leaveRoom}));
+        set((state) => ({LeaveRoom : !state.LeaveRoom}));
     }
 }))
 
